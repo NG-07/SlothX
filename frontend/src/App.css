@@ -84,7 +84,7 @@ body { margin: 0; font-family: var(--font-main); }
 
 
 /* =========================================
-   4. APPLY PAGE & FORMS (Standard Card)
+   4. APPLY PAGE & INTERACTIVE MULTI-STEP FORM
    ========================================= */
 .page-container {
   display: flex;
@@ -102,32 +102,84 @@ body { margin: 0; font-family: var(--font-main); }
   box-shadow: 0 5px 20px rgba(0,0,0,0.1);
   width: 100%;
   border: 1px solid var(--border-color);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
-.apply-card { max-width: 600px; }
+.apply-page-card { max-width: 600px; }
+
+/* Interactive Form Layout */
+.interactive-multi-step {
+    position: relative;
+    overflow: hidden;
+}
 
 /* Form Elements */
-.form-section { margin-bottom: 20px; text-align: left; }
-.form-section h3 { font-size: 0.9rem; color: var(--primary-gold); text-transform: uppercase; border-bottom: 1px solid var(--border-color); padding-bottom: 5px; margin-bottom: 15px; }
-.input-group { margin-bottom: 15px; }
-.input-group label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 0.9rem; }
-.input-group input { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; background-color: var(--input-bg); color: var(--text-color); box-sizing: border-box; }
+.form-section { margin-bottom: 25px; text-align: left; }
+.form-section h3 { font-size: 1rem; color: var(--primary-gold); text-transform: uppercase; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 20px; letter-spacing: 0.5px; }
+.form-section select { width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 6px; background-color: var(--input-bg); color: var(--text-color); }
+
+.input-group { margin-bottom: 15px; flex: 1; }
+.input-group label { display: block; margin-bottom: 7px; font-weight: 600; font-size: 0.9rem; }
+.input-group input, .input-group textarea { width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 6px; background-color: var(--input-bg); color: var(--text-color); box-sizing: border-box; }
+.input-group textarea { resize: vertical; height: 60px; }
+
+.input-row { display: flex; gap: 15px; margin-bottom: 15px; }
 
 /* Buttons */
-.action-btn { width: 100%; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; color: white; transition: 0.2s; }
+.action-btn { width: 100%; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; color: white; transition: 0.2s ease; }
 .submit-btn { background-color: var(--primary-gold); font-size: 1rem; }
 .submit-btn:disabled { background-color: #aaa; cursor: not-allowed; }
-.secondary-btn { background-color: #007bff; margin-top: 10px; }
-.verify-btn { background-color: #28a745; width: auto; padding: 0 20px; }
 
-/* Checkboxes */
-.checkbox-row { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; font-size: 0.9rem; }
-.checkbox-row input { margin-top: 3px; }
+/* Interactive Navigation Buttons */
+.navigation-buttons { display: flex; gap: 15px; margin-top: 25px; }
+.back-btn { background-color: #d9534f; flex: 0 0 100px; }
+.continue-btn { background-color: #007bff; flex: 1; }
+.continue-btn:disabled { background-color: #aaa; cursor: not-allowed; }
+.apply-final-btn { flex: 1; }
 
-/* Specific: Aadhaar & OTP */
-.highlight-section { background-color: rgba(230, 184, 0, 0.05); padding: 15px; border-radius: 8px; border: 1px dashed var(--primary-gold); }
+/* Verification Simulation */
+.send-otp-btn { background-color: #007bff; margin-top: 15px; margin-bottom: 10px; }
+.verify-otp-btn { background-color: #28a745; width: auto; padding: 0 25px; flex: 0 0 100px; }
+.input-verified-row { display: flex; gap: 10px; }
+.input-verified-row input { flex: 1; }
+
+/* Highlighting & Simulation Boxes */
+.highlight-section { background-color: rgba(230, 184, 0, 0.05); padding: 20px; border-radius: 8px; border: 1px dashed var(--primary-gold); box-sizing: border-box; }
+.dark-mode .highlight-section { background-color: rgba(255, 255, 255, 0.02); }
 .otp-container { margin-top: 15px; }
-.otp-verify-box { display: flex; flex-direction: column; gap: 5px; animation: fadeIn 0.3s; }
-.success-badge { color: #28a745; font-weight: bold; background: rgba(40, 167, 69, 0.1); padding: 10px; border-radius: 4px; text-align: center; }
+.otp-verify-box { animation: fadeIn 0.4s ease; }
+.verified-badge { color: #28a745; font-weight: bold; background: rgba(40, 167, 69, 0.1); padding: 12px; border-radius: 6px; text-align: center; margin-top: 10px; font-size: 0.9rem; }
+
+/* File Inputs & Feedback */
+.file-input-group { margin-bottom: 10px; margin-top: 5px; font-size: 0.9rem; }
+.file-input-group label { display: block; margin-bottom: 5px; font-weight: 600; color: var(--primary-gold); }
+.file-input-group input[type="file"] { width: 100%; cursor: pointer; color: var(--text-color); background: none; border: none; font-size: 0.9rem; margin-top: 3px; }
+.file-input-group small { display: block; margin-top: 3px; opacity: 0.7; font-size: 0.8rem; }
+.file-feedback { margin-top: 3px; font-size: 0.8rem; color: #d9534f; font-weight: 500; }
+
+/* Progressive Disclosure */
+.step-content { display: none; opacity: 0; transition: opacity 0.4s ease; }
+.step-content.active { display: block; opacity: 1; }
+
+/* Progress Indicator */
+.progress-indicator { display: flex; justify-content: space-between; margin-bottom: 30px; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; box-sizing: border-box; }
+.progress-step { text-align: center; flex: 1; opacity: 0.5; transition: opacity 0.3s ease; }
+.progress-step.active { opacity: 1; }
+.progress-step.active .step-circle { background-color: var(--primary-gold); border-color: var(--primary-gold); color: #fff; box-shadow: 0 0 10px rgba(230, 184, 0, 0.2); }
+.progress-step.active .step-line { background-color: var(--primary-gold); }
+
+.step-number-wrapper { position: relative; width: 30px; height: 30px; margin: 0 auto; display: flex; align-items: center; justify-content: center; }
+.step-circle { width: 100%; height: 100%; border-radius: 50%; background-color: var(--nav-bg); color: var(--text-color); font-weight: bold; display: flex; align-items: center; justify-content: center; border: 2px solid var(--border-color); font-size: 0.9rem; transition: all 0.3s ease; z-index: 2; }
+.step-line { position: absolute; left: 100%; width: calc(100% - 30px); height: 2px; background-color: var(--border-color); z-index: 1; transform: translateX(0%); transition: background-color 0.3s ease; width: 60px; /* Fixed length for simplicity, adjust as needed */ }
+
+.step-label { margin-top: 7px; font-size: 0.7rem; font-weight: 600; color: var(--text-color); letter-spacing: 0.5px; }
+
+/* Specific: Bank Account & Final Step Box Layouts */
+.bank-acc-box, .final-step { margin-bottom: 30px; }
+.bank-acc-box h3, .final-step h3 { border-bottom-style: solid; }
+.reference-box { margin-bottom: 20px; padding: 15px; border: 1px solid var(--border-color); border-radius: 8px; background-color: rgba(0, 0, 0, 0.02); }
+.dark-mode .reference-box { background-color: rgba(255, 255, 255, 0.01); }
+.reference-box h4 { margin: 0 0 10px 0; font-size: 0.9rem; color: var(--primary-gold); }
+.relation-field { margin-top: -5px; }
 
 
 /* =========================================
@@ -175,8 +227,229 @@ body { margin: 0; font-family: var(--font-main); }
 .facebook { color: #1877f2; }
 .google { color: #db4437; }
 
-/* Footer */
-.footer { text-align: center; padding: 2rem; background-color: #333; color: #fff; }
+/* =========================================
+   6. FOOTER & ANIMATIONS
+   ========================================= */
+.footer { text-align: center; padding: 2rem; background-color: #333; color: #fff; margin-top: auto; }
 
-/* Animations */
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* ... (Keep your existing CSS above) ... */
+
+/* =========================================
+   7. CREATIVE APPLY PAGE (Fit-to-Screen Layout)
+   ========================================= */
+
+.creative-apply-container {
+    background: #fff;
+    padding: 0;
+    align-items: stretch;
+    justify-content: flex-start;
+    display: flex;
+    overflow: hidden; /* Prevents outer scrolling */
+    
+    /* FIT TO SCREEN LOGIC */
+    width: 90%;
+    max-width: 1200px;
+    height: 80vh; /* Fixed height (80% of screen) */
+    margin: 4vh auto; /* Vertically centered */
+    
+    border-radius: 20px;
+    box-shadow: 0 15px 50px rgba(0,0,0,0.1);
+}
+
+.dark-mode .creative-apply-container {
+    background: #1e1e1e;
+}
+
+/* --- Left Sidebar (Static & Clean) --- */
+.apply-sidebar {
+    width: 320px;
+    background-color: #f4f6f9;
+    padding: 40px 30px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    border-right: 1px solid var(--border-color);
+    flex-shrink: 0; /* Prevents sidebar from shrinking */
+}
+.dark-mode .apply-sidebar { background-color: #161616; }
+
+.sidebar-header h2 { 
+    margin: 0; 
+    color: var(--primary-gold); 
+    font-size: 1.4rem; 
+}
+.sidebar-header p { 
+    margin: 5px 0 0 0; 
+    font-size: 0.9rem; 
+    opacity: 0.6; 
+}
+
+/* Progress Line ( Adjusted for fixed height ) */
+.vertical-progress {
+    width: 4px;
+    background: #e0e0e0;
+    /* Dynamically calculate height based on container */
+    height: 60%; 
+    position: absolute;
+    left: 30px; 
+    top: 120px;
+    border-radius: 10px;
+}
+.dark-mode .vertical-progress { background: #333; }
+
+.progress-fill {
+    width: 100%;
+    background: var(--primary-gold);
+    transition: height 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(230, 184, 0, 0.4);
+}
+
+/* Steps List */
+.step-names { 
+    margin-top: 40px; 
+    display: flex; 
+    flex-direction: column; 
+    justify-content: space-between; /* Distribute evenly */
+    height: 60%; /* Match progress line height */
+    margin-left: 25px; 
+}
+
+.step-names div {
+    font-size: 1rem;
+    color: var(--text-color);
+    opacity: 0.4;
+    transition: 0.3s ease;
+    cursor: default;
+    font-weight: 500;
+}
+
+.step-names div.active {
+    opacity: 1;
+    color: var(--primary-gold);
+    transform: translateX(8px);
+    font-weight: 800;
+}
+
+/* --- Right Content Area (Scrolls Internally) --- */
+.apply-content-area {
+    flex: 1;
+    padding: 40px 60px; /* Tighter padding */
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    
+    /* INTERNAL SCROLLING LOGIC */
+    overflow-y: auto; /* Only this part scrolls */
+    scroll-behavior: smooth;
+}
+
+/* Custom Scrollbar for the form area */
+.apply-content-area::-webkit-scrollbar { width: 8px; }
+.apply-content-area::-webkit-scrollbar-track { background: transparent; }
+.apply-content-area::-webkit-scrollbar-thumb { background-color: #ddd; border-radius: 4px; }
+.dark-mode .apply-content-area::-webkit-scrollbar-thumb { background-color: #444; }
+
+/* Typography */
+.step-title { font-size: 2rem; margin-top: 0; margin-bottom: 10px; color: var(--text-color); }
+.step-desc { font-size: 1rem; opacity: 0.6; margin-bottom: 30px; }
+
+/* Inputs (Compact to fit screen) */
+.big-input {
+    width: 100%;
+    padding: 12px 5px; /* Reduced padding */
+    font-size: 1.1rem;
+    border: none;
+    border-bottom: 2px solid #ddd;
+    background: transparent;
+    color: var(--text-color);
+    transition: 0.3s;
+    outline: none;
+}
+.big-input:focus { border-bottom-color: var(--primary-gold); }
+
+.creative-input-grid { display: flex; gap: 30px; width: 100%; }
+.full-width { width: 100%; }
+
+/* Selection Cards */
+.selection-cards { display: flex; gap: 15px; flex-wrap: wrap; margin-top: 15px; margin-bottom: 30px; }
+.select-card {
+    padding: 12px 20px; /* Smaller cards */
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: 0.2s;
+    background: var(--card-bg);
+}
+.select-card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+.select-card.selected {
+    background-color: var(--primary-gold);
+    color: #fff;
+    border-color: var(--primary-gold);
+}
+
+/* File Upload (Compact) */
+.file-upload-box {
+    margin-top: 25px;
+    border: 2px dashed #ccc;
+    padding: 25px;
+    border-radius: 12px;
+    text-align: center;
+    cursor: pointer;
+    transition: 0.2s;
+}
+.file-upload-box label { font-size: 1rem; }
+
+/* Navigation Buttons (Sticky at bottom) */
+.creative-nav-buttons {
+    margin-top: auto; /* Pushes buttons to bottom */
+    display: flex;
+    justify-content: space-between;
+    padding-top: 30px;
+}
+.nav-arrow {
+    padding: 12px 30px;
+    border-radius: 30px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    border: none;
+    transition: 0.2s;
+}
+.back { background: transparent; color: #888; }
+.back:hover { color: var(--text-color); }
+.next { background: var(--text-color); color: var(--bg-color); }
+.next:hover { transform: translateX(5px); }
+.finish { background: var(--primary-gold); color: #fff; }
+
+/* Animation */
+.step-animate { animation: slideUp 0.4s ease-out; }
+@keyframes slideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Verification Styling */
+.aadhaar-box { background: rgba(0,0,0,0.02); padding: 25px; border-radius: 15px; margin-top: 20px; }
+.otp-input { padding: 8px; font-size: 1.1rem; width: 100px; margin-right: 10px; border: 1px solid #ccc; border-radius: 5px; }
+.action-btn-creative { background: var(--text-color); color: var(--bg-color); border: none; padding: 8px 20px; border-radius: 20px; cursor: pointer; margin-top: 15px; font-weight: bold; }
+
+/* Responsive */
+@media (max-width: 900px) {
+    .creative-apply-container { 
+        flex-direction: column; 
+        height: auto; /* Allow scroll on mobile */
+        width: 95%;
+        margin: 10px auto;
+    }
+    .apply-sidebar { 
+        width: 100%; 
+        padding: 20px; 
+        border-right: none; 
+        border-bottom: 1px solid var(--border-color);
+        flex-direction: row; justify-content: space-between; align-items: center;
+    }
+    .vertical-progress, .step-names { display: none; }
+    .apply-content-area { padding: 30px 20px; overflow: visible; }
+}
