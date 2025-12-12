@@ -4,19 +4,31 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 import json
 import hashlib
+import os
+from dotenv import load_dotenv
 from verifier import BiometricEngine
+
+# Load environment variables from .env file
+load_dotenv()
+
+# Load environment for mock biometrics (set MOCK_BIOMETRICS=true to skip face_recognition)
+MOCK_BIOMETRICS = os.getenv("MOCK_BIOMETRICS", "false").lower() == "true"
+
+if not MOCK_BIOMETRICS:
+    import face_recognition
 
 app = FastAPI()
 biometric_engine = BiometricEngine()
 
 # --- Database Connection ---
 def get_db_connection():
-    conn = psycopg2.connect(
-        dbname="central_identity_db", 
-        user="postgres", 
-        password="password", 
-        host="localhost"
-    )
+    db_config = {
+        "dbname": os.getenv("DB_NAME", "central_identity_db"),
+        "user": os.getenv("DB_USER", "postgres"),
+        "password": os.getenv("DB_PASSWORD", "postgres"),  # Change this to your actual password
+        "host": os.getenv("DB_HOST", "localhost"),
+    }
+    conn = psycopg2.connect(**db_config)
     return conn
 
 # --- API Endpoints ---
@@ -114,25 +126,38 @@ async def register_citizen(
     It takes the ID photo, encodes the face, and saves it.
     """
     # Generate Face Encoding for storage
-    image = face_recognition.load_image_file(id_photo.file)
-    try:
-        encoding = face_recognition.face_encodings(image)
-        encoding_list = encoding.tolist() # Convert to JSON-able list
-    except IndexError:
-        raise HTTPException(status_code=400, detail="No face detected in ID photo")
+    if MOCK_BIOMETRICS:
+        # Mock mode: generate a dummy 128-d encoding
+        encoding_list = [0.0] * 128
+    else:
+        id_photo.file.seek(0)
+        image = face_recognition.load_image_file(id_photo.file)
+        try:
+            encs = face_recognition.face_encodings(image)
+            if not encs:
+                raise IndexError()
+            encoding_list = encs[0].tolist() # Convert to JSON-able list
+        except IndexError:
+            raise HTTPException(status_code=400, detail="No face detected in ID photo")
     
     aadhaar_hash = hashlib.sha256(aadhaar_number.encode()).hexdigest()
     
     conn = get_db_connection()
     cursor = conn.cursor()
     
-    insert_query = """
-        INSERT INTO citizen_registry 
-        (full_name, pan_number, aadhaar_number_hash, dob, face_encoding_json)
-        VALUES (%s, %s, %s, '2000-01-01', %s)
-    """
-    cursor.execute(insert_query, (full_name, pan_number, aadhaar_hash, json.dumps(encoding_list)))
-    conn.commit()
-    conn.close()
-    
-    return {"status": "REGISTERED", "message": "Citizen added to Central DB with Biometrics"}
+    try:
+        insert_query = """
+            INSERT INTO citizen_registry 
+            (full_name, pan_number, aadhaar_number_hash, dob, face_encoding_json)
+            VALUES (%s, %s, %s, '2000-01-01', %s)
+        """
+        cursor.execute(insert_query, (full_name, pan_number, aadhaar_hash, json.dumps(encoding_list)))
+        conn.commit()
+        
+        return {"status": "REGISTERED", "message": "Citizen added to Central DB with Biometrics"}
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=f"Registration failed: {str(e)}")
+    finally:
+        cursor.close()
+        conn.close()
