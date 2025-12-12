@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import axios from 'axios'; // Import Axios
 
 const ApplyPage = ({ onApplySuccess }) => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -7,7 +8,16 @@ const ApplyPage = ({ onApplySuccess }) => {
   // Form State
   const [formData, setFormData] = useState({
     // 1. Personal
-    full_name: '', date_of_birth: '', gender: '', phone_number: '', email: '', father_or_mother_name: '', current_address: '', permanent_address: '', selfie: null,
+    full_name: '', 
+    date_of_birth: '', 
+    gender: '', 
+    phone_number: '', 
+    email: '', 
+    password: '', // <--- NEW: Added Password field for DB
+    father_or_mother_name: '', 
+    current_address: '', 
+    permanent_address: '', 
+    selfie: null,
     // 2. KYC
     aadhaar_number: '', pan_number: '', aadhaar_document: null, pan_document: null,
     // 3. Employment
@@ -57,6 +67,34 @@ const ApplyPage = ({ onApplySuccess }) => {
     } else alert("Wrong code. Try 1234.");
   };
 
+  // --- NEW: Handle Submit to Backend ---
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    // Basic Validation
+    if (!formData.full_name || !formData.email || !formData.password) {
+      alert("Please fill in Name, Email, and Password in Step 1.");
+      setCurrentStep(1); // Go back to step 1
+      return;
+    }
+
+    try {
+      // Send data to your SQL Backend
+      const res = await axios.post('http://localhost:5000/api/signup', {
+        name: formData.full_name,
+        email: formData.email,
+        password: formData.password
+      });
+
+      if (res.status === 201) {
+        alert("Application Submitted & Account Created! 🎉");
+        onApplySuccess(formData.full_name); // Log user in
+      }
+    } catch (err) {
+      alert(err.response?.data?.message || "Submission Failed");
+    }
+  };
+
   // Render Logic
   return (
     <div className="page-container creative-apply-container">
@@ -85,7 +123,7 @@ const ApplyPage = ({ onApplySuccess }) => {
 
       {/* Main Content Area */}
       <div className="apply-content-area">
-        <form onSubmit={(e) => { e.preventDefault(); onApplySuccess(formData.full_name); }}>
+        <form onSubmit={handleSubmit}>
           
           {/* STEP 1: PERSONAL */}
           {currentStep === 1 && (
@@ -94,11 +132,11 @@ const ApplyPage = ({ onApplySuccess }) => {
               <p className="step-desc">Tell us a bit about yourself so we can address you correctly.</p>
               
               <div className="creative-input-grid">
-                <input type="text" name="full_name" placeholder="Full Name" value={formData.full_name} onChange={handleChange} className="big-input" />
+                <input type="text" name="full_name" placeholder="Full Name" value={formData.full_name} onChange={handleChange} className="big-input" required />
                 <input type="date" name="date_of_birth" value={formData.date_of_birth} onChange={handleChange} className="big-input" />
               </div>
 
-              <p className="field-label">I identify as:</p>
+              <p className="field-label" style={{marginTop:'20px'}}>I identify as:</p>
               <div className="selection-cards">
                 {['Male', 'Female', 'Other'].map(g => (
                   <div key={g} className={`select-card ${formData.gender === g ? 'selected' : ''}`} onClick={() => handleSelection('gender', g)}>
@@ -109,7 +147,12 @@ const ApplyPage = ({ onApplySuccess }) => {
 
               <div className="creative-input-grid" style={{marginTop:'20px'}}>
                 <input type="tel" name="phone_number" placeholder="Mobile Number" value={formData.phone_number} onChange={handleChange} className="big-input" />
-                <input type="email" name="email" placeholder="Email Address" value={formData.email} onChange={handleChange} className="big-input" />
+                <input type="email" name="email" placeholder="Email Address" value={formData.email} onChange={handleChange} className="big-input" required />
+              </div>
+
+              {/* NEW PASSWORD FIELD */}
+              <div className="creative-input-grid" style={{marginTop:'20px'}}>
+                 <input type="password" name="password" placeholder="Create a Password for Login" value={formData.password} onChange={handleChange} className="big-input" required />
               </div>
 
                <div className="file-upload-box">

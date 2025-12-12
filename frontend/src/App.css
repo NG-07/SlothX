@@ -453,3 +453,35 @@ body { margin: 0; font-family: var(--font-main); }
     .vertical-progress, .step-names { display: none; }
     .apply-content-area { padding: 30px 20px; overflow: visible; }
 }
+
+/* Add this to the end of your App.css */
+
+/* Google & Divider Styling */
+.google-btn-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 15px;
+    width: 100%;
+}
+
+.divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 20px 0;
+    opacity: 0.6;
+}
+.divider::before, .divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid var(--text-color);
+}
+.divider span {
+    padding: 0 10px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    color: var(--text-color);
+}
+
+/* Hide the old social login logic */
+.social-login { display: none; }
