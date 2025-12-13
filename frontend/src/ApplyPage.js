@@ -1,11 +1,33 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios'; 
 
+
 const ApplyPage = ({ onApplySuccess, initialData = null }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 7;
   const isEditing = !!initialData; 
 
+  // OTP Logic State
+  const [otpSent, setOtpSent] = useState(false);
+  const [enteredOtp, setEnteredOtp] = useState('');
+  const [isOtpVerified, setIsOtpVerified] = useState(false);
+
+  // OTP API Functions
+  const sendOTP = async () => {
+    if(!formData.phone_number) return alert("Enter phone number first (in Step 1)!");
+    try {
+      await axios.post('http://localhost:5000/api/send-otp', { phone: formData.phone_number });
+      setOtpSent(true);
+      alert(`OTP Sent! Check your VS Code Terminal.`);
+    } catch (err) { alert("Failed to send OTP"); }
+  };
+
+  const verifyOTP = async () => {
+    try {
+      const res = await axios.post('http://localhost:5000/api/verify-otp', { phone: formData.phone_number, otp: enteredOtp });
+      if(res.data.success) { setIsOtpVerified(true); alert("Verified! ✅"); }
+    } catch (err) { alert("Wrong OTP."); }
+  };
   // Form State
   const [formData, setFormData] = useState({
     full_name: '', date_of_birth: '', gender: '', phone_number: '', email: '', 
@@ -64,8 +86,23 @@ const ApplyPage = ({ onApplySuccess, initialData = null }) => {
   const prevStep = () => setCurrentStep(currentStep - 1);
 
   // Submit / Update
+  // Submit / Update
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // 1. If not on the last step, just go to next step
+    if (currentStep < totalSteps) {
+      nextStep();
+      return; 
+    }
+
+    // 2. SAFETY CHECK: Prevent submission if Reference 1 is missing
+    // This ensures you capture "every detail" before it allows sending.
+    if (!formData.emergency_contact_1_name || !formData.emergency_contact_1_phone) {
+      alert("Please enter at least one Emergency Contact details before submitting.");
+      return; // <--- STOPS the submission here!
+    }
+
     try {
       if (isEditing) {
         await axios.put(`http://localhost:5000/api/update-application/${initialData.id}`, formData);
@@ -74,8 +111,14 @@ const ApplyPage = ({ onApplySuccess, initialData = null }) => {
         await axios.post('http://localhost:5000/api/submit-application', formData);
         alert("Application Submitted Successfully!");
       }
-      onApplySuccess();
-    } catch (err) { alert("Action Failed: " + err.message); }
+      
+      // 3. This redirects to dashboard. 
+      // Since we passed the Safety Check above, we know the data is complete.
+      onApplySuccess(); 
+      
+    } catch (err) { 
+      alert("Action Failed: " + err.message); 
+    }
   };
 
   return (
@@ -100,7 +143,10 @@ const ApplyPage = ({ onApplySuccess, initialData = null }) => {
 
       {/* CONTENT */}
       <div className="apply-content-area">
-        <form onSubmit={handleSubmit}>
+        <form 
+          onSubmit={handleSubmit} 
+          onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }} 
+        >
           
           {/* STEP 1: PERSONAL */}
           {currentStep === 1 && (
@@ -134,11 +180,41 @@ const ApplyPage = ({ onApplySuccess, initialData = null }) => {
           {currentStep === 2 && (
             <div className="step-animate">
               <h1 className="step-title">Verify Identity 🛡️</h1>
+              
               <div className="aadhaar-box">
-                <input type="text" name="aadhaar_number" placeholder="Aadhaar Number (12 Digits)" value={formData.aadhaar_number} onChange={handleChange} maxLength="12" className="big-input" />
+                <input 
+                  type="text" 
+                  name="aadhaar_number" 
+                  placeholder="Aadhaar Number (12 Digits)" 
+                  value={formData.aadhaar_number} 
+                  onChange={handleChange} 
+                  maxLength="12" 
+                  className="big-input" 
+                />
+                
+                {/* 👇 THIS WAS MISSING! 👇 */}
+                <div style={{marginTop: '15px'}}>
+                  {!otpSent ? (
+                      <button type="button" className="action-btn-creative" onClick={sendOTP} style={{width:'100%'}}>
+                          📲 Get OTP
+                      </button>
+                  ) : (
+                      <div className="otp-verify-animate">
+                          {isOtpVerified ? <div className="success-msg" style={{color:'green', fontWeight:'bold'}}>Verified ✅</div> : (
+                              <div className="otp-row" style={{display:'flex', gap:'10px', marginTop:'10px'}}>
+                                  <input type="text" placeholder="Enter OTP from Terminal" value={enteredOtp} onChange={(e) => setEnteredOtp(e.target.value)} className="big-input" style={{width:'60%'}} />
+                                  <button type="button" className="action-btn-creative" onClick={verifyOTP} style={{width:'40%'}}>Confirm</button>
+                              </div>
+                          )}
+                      </div>
+                  )}
+                </div>
+                {/* 👆 END OF FIX 👆 */}
+              
               </div>
+
               <div className="creative-input-grid" style={{marginTop:'20px'}}>
-                 <input type="text" name="pan_number" placeholder="PAN Number" value={formData.pan_number} onChange={handleChange} className="big-input full-width" maxLength="10" />
+                <input type="text" name="pan_number" placeholder="PAN Number" value={formData.pan_number} onChange={handleChange} className="big-input full-width" maxLength="10" />
               </div>
             </div>
           )}
@@ -235,9 +311,23 @@ const ApplyPage = ({ onApplySuccess, initialData = null }) => {
             </div>
           )}
 
+          {/* FIXED BUTTON SECTION (Removed double nesting) */}
           <div className="creative-nav-buttons">
-            {currentStep > 1 && <button type="button" className="nav-arrow back" onClick={prevStep}>← Back</button>}
-            {currentStep < totalSteps ? (<button type="button" className="nav-arrow next" onClick={nextStep}>Next →</button>) : (<button type="submit" className="nav-arrow finish">{isEditing ? "Save & Resend Email" : "Submit Application"}</button>)}
+            {currentStep > 1 && (
+              <button type="button" className="nav-arrow back" onClick={prevStep}>
+                ← Back
+              </button>
+            )}
+            
+            {currentStep < totalSteps ? (
+              <button type="button" className="nav-arrow next" onClick={nextStep}>
+                Next →
+              </button>
+            ) : (
+              <button type="submit" className="nav-arrow finish">
+                {isEditing ? "Save & Resend Email" : "Submit Application"}
+              </button>
+            )}
           </div>
         </form>
       </div>
