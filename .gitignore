@@ -68,6 +68,12 @@ Thumbs.db
 *.log
 logs/
 
+# Pickle files
+*.pkl
+
+# Data folders
+backend/credit_risk_data/
+
 # Node (if frontend added later)
 node_modules/
 dist/
