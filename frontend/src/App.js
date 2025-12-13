@@ -4,6 +4,7 @@ import axios from 'axios';
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google'; 
 import LandingPage from './LandingPage';
 import ApplyPage from './ApplyPage';
+import DashboardPage from './DashboardPage';
 import logo_image from './assets/logo.jpg';
 
 const GOOGLE_CLIENT_ID = "263303907123-gmok720j1p9tqia0l5ff1d5nep5d3qq9.apps.googleusercontent.com";
@@ -11,6 +12,8 @@ const GOOGLE_CLIENT_ID = "263303907123-gmok720j1p9tqia0l5ff1d5nep5d3qq9.apps.goo
 const App = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [currentView, setCurrentView] = useState('landing'); 
+  const [editingLoan, setEditingLoan] = useState(null);
+  const [userUserEmail, setUserUserEmail] = useState('');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userUser, setUserUser] = useState('');
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -25,13 +28,14 @@ const App = () => {
   const handleSignupChange = (e) => setSignupData({ ...signupData, [e.target.name]: e.target.value });
 
   const handleAxiosLogin = async (e) => {
-    e.preventDefault();
-    try {
-      const res = await axios.post('http://localhost:5000/api/login', loginData);
-      if (res.status === 200) {
-        completeLogin(res.data.name);
-      }
-    } catch (err) { alert(err.response?.data?.message || "Login Failed"); }
+      e.preventDefault();
+      try {
+        const res = await axios.post('http://localhost:5000/api/login', loginData);
+        if (res.status === 200) {
+          // 👇 FIXED: Pass 'res.data.email' too
+          completeLogin(res.data.name, res.data.email);
+        }
+      } catch (err) { alert(err.response?.data?.message || "Login Failed"); }
   };
 
   const handleAxiosSignup = async (e) => {
@@ -45,18 +49,20 @@ const App = () => {
   };
 
   const handleGoogleSuccess = async (credentialResponse) => {
-    try {
-      const res = await axios.post('http://localhost:5000/api/google-login', {
-        token: credentialResponse.credential
-      });
-      completeLogin(res.data.name);
-    } catch (err) {
+      try {
+        const res = await axios.post('http://localhost:5000/api/google-login', {
+          token: credentialResponse.credential
+        });
+        // 👇 FIXED: Pass 'res.data.email' too
+        completeLogin(res.data.name, res.data.email);
+      } catch (err) {
       console.error("Google Login Failed", err);
       alert("Google Login Failed");
     }
   };
 
-  const completeLogin = (name) => {
+  const completeLogin = (name, email) => {
+    setUserUserEmail(email);
     alert(`Welcome, ${name}!`);
     setIsLoggedIn(true);
     setUserUser(name);
@@ -74,6 +80,12 @@ const App = () => {
         
         {/* NAVBAR */}
         <nav className="navbar">
+          {/* In App.js inside <nav> */}
+          {isLoggedIn && (
+            <button className="dashboard-link-btn" onClick={() => navigateTo('dashboard')}>
+              Dashboard
+            </button>
+          )}
           {/* UPDATED LOGO */}
           <div className="logo" onClick={() => navigateTo('landing')}>
               {/* Updates the text to an image */}
@@ -97,16 +109,35 @@ const App = () => {
 
         {/* CONTENT */}
         <div className="main-content">
-          {currentView === 'landing' && <LandingPage onApplyClick={() => navigateTo('apply')} />}
-          {currentView === 'apply' && (
-            <ApplyPage 
-              onApplySuccess={() => {
-                alert("Application Submitted! Check your dashboard for updates.");
-                setCurrentView('landing'); 
-              }} 
-            />
+    
+          {/* LANDING */}
+          {currentView === 'landing' && <LandingPage onApplyClick={() => {
+              setEditingLoan(null); // Clear edit data for new loan
+              navigateTo('apply');
+          }} />}
+
+          {/* DASHBOARD (Pass email and edit handler) */}
+          {currentView === 'dashboard' && (
+              <DashboardPage 
+                  userEmail={userUserEmail} // You need to store logged-in email, not just name!
+                  onEdit={(loan) => {
+                      setEditingLoan(loan); // Save loan data
+                      navigateTo('apply');  // Go to form
+                  }}
+              />
           )}
-        </div>
+
+          {/* APPLY PAGE (Accepts initialData) */}
+          {currentView === 'apply' && (
+              <ApplyPage 
+                  initialData={editingLoan} // Pass the data to edit
+                  onApplySuccess={() => {
+                      setEditingLoan(null);
+                      navigateTo('dashboard'); // Go back to dashboard after save
+                  }} 
+              />
+          )}
+      </div>
 
         {/* AUTH MODAL */}
         {showAuthModal && (

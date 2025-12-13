@@ -57,7 +57,7 @@ app.post('/api/login', (req, res) => {
 
     const user = results[0];
     if (password === user.password) {
-      res.json({ message: "Login Successful", name: user.name });
+      res.json({ message: "Login Successful", name: user.name, email: user.email });
     } else {
       res.status(400).json({ message: "Incorrect Password" });
     }
@@ -81,12 +81,12 @@ app.post('/api/google-login', async (req, res) => {
         if (!user.google_id) {
            db.query('UPDATE simple_users SET google_id = ?, picture = ? WHERE email = ?', [google_id, picture, email]);
         }
-        return res.json({ message: "Google Login Successful", name: user.name });
+        return res.json({ message: "Google Login Successful", name: user.name, email: email });
       } else {
         const insertSql = 'INSERT INTO simple_users (name, email, google_id, picture) VALUES (?, ?, ?, ?)';
         db.query(insertSql, [name, email, google_id, picture], (err, result) => {
           if (err) return res.status(500).json({ error: err.message });
-          return res.status(201).json({ message: "Google Signup Successful", name: name });
+          return res.status(201).json({ message: "Google Signup Successful", name: name, email: email });
         });
       }
     });
@@ -129,7 +129,7 @@ function generatePDF(data, outputPath) {
         doc.pipe(stream);
 
         // -- TITLE --
-        doc.fontSize(24).font('Helvetica-Bold').text("YesLoans Application Form", { align: "center" });
+        doc.fontSize(24).font('Helvetica-Bold').text("SlothX Application Form", { align: "center" });
         doc.fontSize(10).font('Helvetica').text(`Generated on: ${new Date().toLocaleString()}`, { align: "center" });
         doc.moveDown(2);
 
@@ -225,17 +225,17 @@ async function sendEmail(to, filePath) {
     });
 
     await transporter.sendMail({
-      from: `"YesLoans Support" <${MY_EMAIL}>`,
+      from: `"SlothX Support" <${MY_EMAIL}>`,
       to: to,
       subject: "Application Submitted Successfully! ✅",
       html: `
           <h3>Dear Applicant,</h3>
-          <p>Congratulations! Your loan application has been successfully submitted to <b>YesLoans</b>.</p>
+          <p>Congratulations! Your loan application has been successfully submitted to <b>SlothX</b>.</p>
           <p>We have attached a complete copy of your application form for your records.</p>
           <br>
-          <p>Best Regards,<br>The YesLoans Team</p>
+          <p>Best Regards,<br>The SlothX Team</p>
       `,
-      attachments: [{ filename: "YesLoans-Application-Form.pdf", path: filePath }]
+      attachments: [{ filename: "SlothX-Application-Form.pdf", path: filePath }]
   });
 }
 
@@ -286,6 +286,96 @@ app.post('/api/submit-application', async (req, res) => {
         res.status(201).json({ message: "Application Saved (Email failed)" });
     }
   });
+});
+
+// ==========================================
+// 4. DASHBOARD & EDIT ROUTES
+// ==========================================
+
+// A. GET USER'S APPLICATIONS
+app.get('/api/my-applications', (req, res) => {
+    const { email } = req.query;
+    if (!email) return res.status(400).json({ error: "Email required" });
+
+    // Fetch newest first
+    const sql = "SELECT * FROM loan_applications WHERE email = ? ORDER BY application_date DESC";
+    db.query(sql, [email], (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(results);
+    });
+});
+
+// B. UPDATE APPLICATION (EDIT)
+app.put('/api/update-application/:id', async (req, res) => {
+    const loanId = req.params.id;
+    const data = req.body;
+    
+    // Helper to format data safely (Reuse your existing logic if possible)
+    const toInt = (val) => (val === '' || val === undefined) ? 0 : val;
+    const toDecimal = (val) => (val === '' || val === undefined) ? 0.00 : val;
+
+    const sql = `
+        UPDATE loan_applications SET 
+        full_name=?, dob=?, gender=?, phone_number=?, parent_name=?, current_address=?, permanent_address=?,
+        aadhaar_number=?, pan_number=?,
+        employment_type=?, employer_name=?, job_role=?, monthly_income=?, work_experience_months=?,
+        credit_score=?, existing_emis=?, monthly_emi_obligation=?, net_savings=?,
+        loan_amount=?, loan_purpose=?, tenure_months=?, repayment_mode=?,
+        account_holder=?, account_number=?, ifsc_code=?, bank_name=?, linked_mobile=?,
+        ref1_name=?, ref1_phone=?, ref1_relation=?, ref2_name=?, ref2_phone=?, ref2_relation=?
+        WHERE id = ? AND email = ?
+    `;
+
+    const values = [
+        data.full_name, data.date_of_birth, data.gender, data.phone_number, data.father_or_mother_name, data.current_address, data.permanent_address,
+        data.aadhaar_number, data.pan_number,
+        data.employment_type, data.employer_name, data.job_role, 
+        toDecimal(data.monthly_income), toInt(data.work_experience_months),
+        toInt(data.credit_score), toInt(data.existing_emis), toDecimal(data.monthly_emi_obligation), toDecimal(data.net_monthly_savings),
+        toDecimal(data.loan_amount_requested), data.loan_purpose, toInt(data.tenure_months), data.repayment_mode,
+        data.account_holder_name, data.account_number, data.ifsc_code, data.bank_name, data.linked_mobile_number,
+        data.emergency_contact_1_name, data.emergency_contact_1_phone, data.emergency_contact_1_relation,
+        data.emergency_contact_2_name, data.emergency_contact_2_phone, data.emergency_contact_2_relation,
+        loanId, data.email // WHERE id = ? AND email = ? (Security check)
+    ];
+
+    db.query(sql, values, async (err, result) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ error: "Update Failed: " + err.sqlMessage });
+        }
+
+        // RE-SEND EMAIL WITH UPDATED PDF
+        try {
+            const pdfPath = `./updated-loan-${Date.now()}.pdf`;
+            await generatePDF(data, pdfPath);
+            
+            // Send Email logic (inline for simplicity)
+            let transporter = nodemailer.createTransport({
+                service: "gmail",
+                auth: { user: MY_EMAIL, pass: MY_APP_PASS }
+            });
+        
+            await transporter.sendMail({
+                from: `"SlothX Support" <${MY_EMAIL}>`,
+                to: data.email,
+                subject: "Application Updated Successfully! 📝",
+                html: `
+                    <h3>Dear ${data.full_name},</h3>
+                    <p>Your loan application (ID: #${loanId}) has been updated.</p>
+                    <p>Attached is the revised summary for your records.</p>
+                `,
+                attachments: [{ filename: "Updated-Application.pdf", path: pdfPath }]
+            });
+
+            fs.unlink(pdfPath, (e) => {}); // Cleanup
+            res.json({ message: "Application Updated & Email Sent!" });
+
+        } catch (emailErr) {
+            console.error(emailErr);
+            res.json({ message: "Updated, but email failed." });
+        }
+    });
 });
 
 const PORT = 5000;

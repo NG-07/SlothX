@@ -955,3 +955,129 @@ body { margin: 0; font-family: var(--font-main); }
 .dark-mode .glass-card p {
     color: #cbd5e1;
 }
+
+/* --- DASHBOARD BUTTON IN NAVBAR --- */
+.dashboard-link-btn {
+    background: rgba(108, 99, 255, 0.2);
+    color: #6C63FF;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: bold;
+    border: 1px solid #6C63FF;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    margin-right: 15px;
+}
+.dashboard-link-btn:hover {
+    background: #6C63FF;
+    color: white;
+    transform: translateY(-2px);
+}
+
+/* --- DASHBOARD PAGE STYLES --- */
+.dashboard-container {
+    padding: 40px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+.dashboard-header-box {
+    margin-bottom: 40px;
+    text-align: center;
+}
+.dashboard-title {
+    font-size: 2.5rem;
+    color: #1e293b;
+    margin-bottom: 10px;
+}
+
+/* GRID */
+.loans-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 30px;
+}
+
+/* PREMIUM CARD */
+.loan-card-premium {
+    background: white;
+    border-radius: 20px;
+    padding: 25px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    border: 1px solid rgba(0,0,0,0.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+.loan-card-premium:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(108, 99, 255, 0.15);
+    border-color: #6C63FF;
+}
+
+/* CARD DETAILS */
+.card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+.loan-badge {
+    padding: 5px 12px;
+    border-radius: 20px;
+    color: white;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+.loan-date {
+    font-size: 0.9rem;
+    color: #94a3b8;
+}
+.card-purpose {
+    font-size: 1.2rem;
+    color: #64748b;
+    margin: 0;
+}
+.card-amount {
+    font-size: 2rem;
+    color: #1e293b;
+    margin: 10px 0;
+    font-weight: 800;
+}
+.card-details-mini {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 25px;
+    font-size: 0.9rem;
+    color: #64748b;
+    background: #f8fafc;
+    padding: 10px;
+    border-radius: 8px;
+}
+
+/* EDIT BUTTON */
+.edit-btn-premium {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 12px;
+    background: #f1f5f9;
+    color: #475569;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.2s;
+}
+.edit-btn-premium:hover {
+    background: #6C63FF;
+    color: white;
+}
+
+/* DARK MODE FIXES */
+.dark-mode .dashboard-title { color: white; }
+.dark-mode .loan-card-premium {
+    background: #1e293b;
+    border-color: #334155;
+}
+.dark-mode .card-amount { color: white; }
+.dark-mode .card-details-mini { background: #0f172a; }
+.dark-mode .edit-btn-premium { background: #334155; color: white; }
+.dark-mode .edit-btn-premium:hover { background: #6C63FF; }

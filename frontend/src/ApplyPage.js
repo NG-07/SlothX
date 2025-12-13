@@ -1,131 +1,111 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios'; 
 
-const ApplyPage = ({ onApplySuccess }) => {
+const ApplyPage = ({ onApplySuccess, initialData = null }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 7;
+  const isEditing = !!initialData; 
 
   // Form State
   const [formData, setFormData] = useState({
-    // 1. Personal
     full_name: '', date_of_birth: '', gender: '', phone_number: '', email: '', 
     father_or_mother_name: '', current_address: '', permanent_address: '', 
-    // 2. KYC
     aadhaar_number: '', pan_number: '', 
-    // 3. Employment
     employment_type: '', employer_name: '', job_role: '', monthly_income: '', work_experience_months: '',
-    // 4. Financial
     credit_score: '', existing_emis: '', monthly_emi_obligation: '', net_monthly_savings: '', 
-    // 5. Loan
     loan_amount_requested: '', loan_purpose: '', tenure_months: '', repayment_mode: '',
-    // 6. Bank
     account_holder_name: '', account_number: '', ifsc_code: '', bank_name: '', linked_mobile_number: '', 
-    // 7. Refs
     emergency_contact_1_name: '', emergency_contact_1_phone: '', emergency_contact_1_relation: '', 
     emergency_contact_2_name: '', emergency_contact_2_phone: '', emergency_contact_2_relation: ''
   });
 
-  // OTP Logic
-  const [otpSent, setOtpSent] = useState(false);
-  const [enteredOtp, setEnteredOtp] = useState('');
-  const [isOtpVerified, setIsOtpVerified] = useState(false);
+  // --- FIXED MAPPING LOGIC ---
+  useEffect(() => {
+    if (initialData) {
+        // Map DB Column Names -> Frontend State Names
+        setFormData({
+            ...initialData, // Keep matching names (full_name, email, etc.)
+            
+            // 1. Personal
+            date_of_birth: initialData.dob ? initialData.dob.split('T')[0] : '',
+            father_or_mother_name: initialData.parent_name || '',
+            
+            // 2. KYC (Matches usually)
+            
+            // 3. Employment (Matches usually)
 
-  // --- VALIDATION LOGIC ---
-  const validateStep = (step) => {
-    const d = formData;
-    switch(step) {
-      case 1: 
-        if(!d.full_name || !d.date_of_birth || !d.father_or_mother_name || !d.current_address) return "Please fill all Personal Details.";
-        return true;
-      case 2: 
-        if(!d.aadhaar_number || !d.pan_number) return "Please fill KYC Details.";
-        if(d.aadhaar_number.length !== 12) return "Aadhaar must be 12 digits.";
-        if(!isOtpVerified) return "Please Verify OTP first."; 
-        return true;
-      case 3: 
-        if(!d.employment_type || !d.monthly_income || !d.job_role) return "Please fill Employment Details.";
-        return true;
-      case 4: 
-        if(!d.credit_score || !d.monthly_emi_obligation) return "Please fill Financial Details.";
-        return true;
-      case 5: 
-        if(!d.loan_amount_requested || !d.tenure_months) return "Please fill Loan Details.";
-        return true;
-      case 6: 
-        if(!d.account_number || !d.ifsc_code || !d.linked_mobile_number) return "Please fill Bank Details.";
-        return true;
-      case 7: 
-        if(!d.emergency_contact_1_name || !d.emergency_contact_1_relation) return "Please provide Reference 1.";
-        return true;
-      default: return true;
+            // 4. Financial (Matches usually)
+            net_monthly_savings: initialData.net_savings || '',
+
+            // 5. Loan Details
+            loan_amount_requested: initialData.loan_amount || '',
+            
+            // 6. Bank Details
+            account_holder_name: initialData.account_holder || '',
+            linked_mobile_number: initialData.linked_mobile || '',
+
+            // 7. References
+            emergency_contact_1_name: initialData.ref1_name || '',
+            emergency_contact_1_phone: initialData.ref1_phone || '',
+            emergency_contact_1_relation: initialData.ref1_relation || '',
+            emergency_contact_2_name: initialData.ref2_name || '',
+            emergency_contact_2_phone: initialData.ref2_phone || '',
+            emergency_contact_2_relation: initialData.ref2_relation || '',
+        });
     }
-  };
-
-  // Navigation
-  const nextStep = () => {
-    const isValid = validateStep(currentStep);
-    if (isValid === true) {
-      if (currentStep < totalSteps) setCurrentStep(currentStep + 1);
-    } else { alert(isValid); }
-  };
-  const prevStep = () => { if (currentStep > 1) setCurrentStep(currentStep - 1); };
+  }, [initialData]);
 
   // Handlers
   const handleChange = (e) => setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
   const handleSelection = (name, value) => setFormData(prev => ({ ...prev, [name]: value }));
 
-  // OTP API
-  const sendOTP = async () => {
-    if(!formData.phone_number) return alert("Enter phone number first!");
-    try {
-      await axios.post('http://localhost:5000/api/send-otp', { phone: formData.phone_number });
-      setOtpSent(true);
-      alert(`OTP Sent! Check your VS Code Terminal.`);
-    } catch (err) { alert("Failed to send OTP"); }
-  };
+  // Navigation
+  const nextStep = () => setCurrentStep(currentStep + 1);
+  const prevStep = () => setCurrentStep(currentStep - 1);
 
-  const verifyOTP = async () => {
-    try {
-      const res = await axios.post('http://localhost:5000/api/verify-otp', { phone: formData.phone_number, otp: enteredOtp });
-      if(res.data.success) { setIsOtpVerified(true); alert("Verified! ✅"); }
-    } catch (err) { alert("Wrong OTP."); }
-  };
-
-  // Submit
+  // Submit / Update
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (validateStep(7) !== true) return alert("Please fill Reference Details.");
     try {
-      const res = await axios.post('http://localhost:5000/api/submit-application', formData);
-      if (res.status === 201) { onApplySuccess(); }
-    } catch (err) { alert(err.response?.data?.error || "Submission Failed"); }
+      if (isEditing) {
+        await axios.put(`http://localhost:5000/api/update-application/${initialData.id}`, formData);
+        alert("Application Updated Successfully!");
+      } else {
+        await axios.post('http://localhost:5000/api/submit-application', formData);
+        alert("Application Submitted Successfully!");
+      }
+      onApplySuccess();
+    } catch (err) { alert("Action Failed: " + err.message); }
   };
 
   return (
     <div className="page-container creative-apply-container">
-      {/* Sidebar */}
+      {/* SIDEBAR */}
       <div className="apply-sidebar">
-        <div className="sidebar-header"><h2>Your Journey</h2><p>Step {currentStep} of {totalSteps}</p></div>
+        <div className="sidebar-header">
+            <h2>{isEditing ? "Edit Mode ✏️" : "New Application"}</h2>
+            <p>Step {currentStep} of {totalSteps}</p>
+        </div>
         <div className="vertical-progress"><div className="progress-fill" style={{ height: `${(currentStep / totalSteps) * 100}%` }}></div></div>
         <div className="step-names">
-            <div className={currentStep === 1 ? 'active' : ''}>1. About You</div>
-            <div className={currentStep === 2 ? 'active' : ''}>2. Identity Check</div>
-            <div className={currentStep === 3 ? 'active' : ''}>3. Work Life</div>
-            <div className={currentStep === 4 ? 'active' : ''}>4. Money Matters</div>
-            <div className={currentStep === 5 ? 'active' : ''}>5. Loan Details</div>
-            <div className={currentStep === 6 ? 'active' : ''}>6. Bank Info</div>
-            <div className={currentStep === 7 ? 'active' : ''}>7. Friends & Family</div>
+            <div className={currentStep === 1 ? 'active' : ''}>1. Personal</div>
+            <div className={currentStep === 2 ? 'active' : ''}>2. KYC</div>
+            <div className={currentStep === 3 ? 'active' : ''}>3. Employment</div>
+            <div className={currentStep === 4 ? 'active' : ''}>4. Financial</div>
+            <div className={currentStep === 5 ? 'active' : ''}>5. Loan</div>
+            <div className={currentStep === 6 ? 'active' : ''}>6. Bank</div>
+            <div className={currentStep === 7 ? 'active' : ''}>7. Refs</div>
         </div>
       </div>
 
-      {/* Content */}
+      {/* CONTENT */}
       <div className="apply-content-area">
         <form onSubmit={handleSubmit}>
           
-          {/* STEP 1: PERSONAL (Added Address & Parent) */}
+          {/* STEP 1: PERSONAL */}
           {currentStep === 1 && (
             <div className="step-animate">
-              <h1 className="step-title">Let's start. 👋</h1>
+              <h1 className="step-title">{isEditing ? "Update Personal Info" : "Let's start. 👋"}</h1>
               <div className="creative-input-grid">
                 <input type="text" name="full_name" placeholder="Full Name" value={formData.full_name} onChange={handleChange} className="big-input" />
                 <input type="date" name="date_of_birth" value={formData.date_of_birth} onChange={handleChange} className="big-input" />
@@ -150,33 +130,20 @@ const ApplyPage = ({ onApplySuccess }) => {
             </div>
           )}
 
-          {/* STEP 2: KYC (Added PAN) */}
+          {/* STEP 2: KYC */}
           {currentStep === 2 && (
             <div className="step-animate">
               <h1 className="step-title">Verify Identity 🛡️</h1>
               <div className="aadhaar-box">
                 <input type="text" name="aadhaar_number" placeholder="Aadhaar Number (12 Digits)" value={formData.aadhaar_number} onChange={handleChange} maxLength="12" className="big-input" />
-                
-                {!otpSent ? (
-                    <button type="button" className="action-btn-creative" onClick={sendOTP}>Get OTP</button>
-                ) : (
-                    <div className="otp-verify-animate">
-                         {isOtpVerified ? <div className="success-msg">Verified ✅</div> : (
-                             <div className="otp-row">
-                                 <input type="text" placeholder="Check Terminal" value={enteredOtp} onChange={(e) => setEnteredOtp(e.target.value)} className="otp-input" />
-                                 <button type="button" className="action-btn-creative" onClick={verifyOTP}>Confirm</button>
-                             </div>
-                         )}
-                    </div>
-                )}
               </div>
               <div className="creative-input-grid" style={{marginTop:'20px'}}>
-                 <input type="text" name="pan_number" placeholder="PAN Number (e.g. ABCDE1234F)" value={formData.pan_number} onChange={handleChange} className="big-input full-width" maxLength="10" />
+                 <input type="text" name="pan_number" placeholder="PAN Number" value={formData.pan_number} onChange={handleChange} className="big-input full-width" maxLength="10" />
               </div>
             </div>
           )}
 
-          {/* STEP 3 (Added Job Role) */}
+          {/* STEP 3: EMPLOYMENT */}
           {currentStep === 3 && (
             <div className="step-animate">
               <h1 className="step-title">Employment 💼</h1>
@@ -196,7 +163,7 @@ const ApplyPage = ({ onApplySuccess }) => {
             </div>
           )}
           
-          {/* STEP 4 (Added Existing EMIs & Net Savings) */}
+          {/* STEP 4: FINANCIAL */}
           {currentStep === 4 && (
             <div className="step-animate">
               <h1 className="step-title">Finances 💰</h1>
@@ -211,7 +178,7 @@ const ApplyPage = ({ onApplySuccess }) => {
             </div>
           )}
 
-          {/* STEP 5 (Added Tenure & Repayment Mode) */}
+          {/* STEP 5: LOAN */}
           {currentStep === 5 && (
             <div className="step-animate">
               <h1 className="step-title">Loan Details 🤝</h1>
@@ -227,7 +194,7 @@ const ApplyPage = ({ onApplySuccess }) => {
             </div>
           )}
 
-          {/* STEP 6 (Added Linked Mobile) */}
+          {/* STEP 6: BANK */}
           {currentStep === 6 && (
             <div className="step-animate">
               <h1 className="step-title">Bank Info 🏦</h1>
@@ -245,7 +212,7 @@ const ApplyPage = ({ onApplySuccess }) => {
             </div>
           )}
 
-          {/* STEP 7: REFS (Added Relations) */}
+          {/* STEP 7: REFS */}
           {currentStep === 7 && (
             <div className="step-animate">
               <h1 className="step-title">References 📞</h1>
@@ -270,7 +237,7 @@ const ApplyPage = ({ onApplySuccess }) => {
 
           <div className="creative-nav-buttons">
             {currentStep > 1 && <button type="button" className="nav-arrow back" onClick={prevStep}>← Back</button>}
-            {currentStep < totalSteps ? (<button type="button" className="nav-arrow next" onClick={nextStep}>Next →</button>) : (<button type="submit" className="nav-arrow finish">Submit Application ✨</button>)}
+            {currentStep < totalSteps ? (<button type="button" className="nav-arrow next" onClick={nextStep}>Next →</button>) : (<button type="submit" className="nav-arrow finish">{isEditing ? "Save & Resend Email" : "Submit Application"}</button>)}
           </div>
         </form>
       </div>
