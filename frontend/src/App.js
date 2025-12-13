@@ -98,7 +98,17 @@ const App = () => {
         {/* CONTENT */}
         <div className="main-content">
           {currentView === 'landing' && <LandingPage onApplyClick={() => navigateTo('apply')} />}
-          {currentView === 'apply' && <ApplyPage onApplySuccess={(name) => { completeLogin(name); setCurrentView('landing'); }} />}
+          // Find this part inside the return() of App.js
+          {currentView === 'apply' && (
+            <ApplyPage 
+              onApplySuccess={() => {
+                // FIXED: We do NOT change userUser or setIsLoggedIn here anymore.
+                // We just go back to the home page.
+                alert("Application Submitted! Check your dashboard for updates.");
+                setCurrentView('landing'); 
+              }} 
+            />
+          )}
         </div>
 
         {/* AUTH MODAL */}

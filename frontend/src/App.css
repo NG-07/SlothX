@@ -485,3 +485,36 @@ body { margin: 0; font-family: var(--font-main); }
 
 /* Hide the old social login logic */
 .social-login { display: none; }
+
+/* --- PREMIUM UI UPGRADES --- */
+
+/* Better File Upload Box */
+.upload-zone-premium {
+    margin-top: 30px;
+    border: 2px dashed var(--primary-gold);
+    background-color: rgba(230, 184, 0, 0.05);
+    padding: 30px;
+    border-radius: 15px;
+    text-align: center;
+    cursor: pointer;
+    transition: 0.3s;
+}
+.upload-zone-premium:hover {
+    background-color: rgba(230, 184, 0, 0.1);
+    transform: translateY(-2px);
+}
+.upload-zone-premium p {
+    font-weight: bold;
+    color: var(--text-color);
+    margin-bottom: 10px;
+}
+
+/* Better Salary / Money Input */
+.small-money {
+    font-size: 2rem !important; /* Smaller than main loan input */
+    margin-top: 20px;
+    border-bottom: 2px solid var(--border-color);
+}
+.small-money .huge-money-input {
+    font-size: 2rem !important;
+}
