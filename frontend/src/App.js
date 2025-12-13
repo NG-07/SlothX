@@ -5,7 +5,6 @@ import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import LandingPage from './LandingPage';
 import ApplyPage from './ApplyPage';
 
-// REPLACE THIS WITH YOUR ACTUAL GOOGLE CLIENT ID
 const GOOGLE_CLIENT_ID = "263303907123-gmok720j1p9tqia0l5ff1d5nep5d3qq9.apps.googleusercontent.com";
 
 const App = () => {
@@ -15,19 +14,15 @@ const App = () => {
   const [userUser, setUserUser] = useState('');
   const [showAuthModal, setShowAuthModal] = useState(false);
 
-  // Auth Inputs (Separated for Login vs Signup)
   const [loginData, setLoginData] = useState({ email: '', password: '' });
   const [signupData, setSignupData] = useState({ username: '', email: '', password: '' });
 
-  // Toggles
   const toggleTheme = () => setIsDarkMode(!isDarkMode);
   const navigateTo = (view) => setCurrentView(view);
 
-  // Input Handlers
   const handleLoginChange = (e) => setLoginData({ ...loginData, [e.target.name]: e.target.value });
   const handleSignupChange = (e) => setSignupData({ ...signupData, [e.target.name]: e.target.value });
 
-  // --- AXIOS HANDLERS ---
   const handleAxiosLogin = async (e) => {
     e.preventDefault();
     try {
@@ -48,7 +43,6 @@ const App = () => {
     } catch (err) { alert(err.response?.data?.message || "Signup Failed"); }
   };
 
-  // --- GOOGLE SUCCESS HANDLER ---
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
       const res = await axios.post('http://localhost:5000/api/google-login', {
@@ -61,7 +55,6 @@ const App = () => {
     }
   };
 
-  // Helper to DRY up login code
   const completeLogin = (name) => {
     alert(`Welcome, ${name}!`);
     setIsLoggedIn(true);
@@ -101,8 +94,6 @@ const App = () => {
           {currentView === 'apply' && (
             <ApplyPage 
               onApplySuccess={() => {
-                // FIXED: We do NOT change userUser or setIsLoggedIn here anymore.
-                // We just go back to the home page.
                 alert("Application Submitted! Check your dashboard for updates.");
                 setCurrentView('landing'); 
               }} 

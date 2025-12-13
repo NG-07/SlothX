@@ -9,8 +9,6 @@ const LoginPage = ({ onLoginSuccess, onGoToApply }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Simulate a successful login
-    // In a real app, you would check the database here.
     if (formData.username && formData.password) {
       onLoginSuccess(formData.username);
     } else {

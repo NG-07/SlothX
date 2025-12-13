@@ -32,7 +32,6 @@ let otpStore = {};
 // 1. AUTHENTICATION ROUTES (Login / Signup)
 // ==========================================
 
-// A. SIMPLE SIGNUP
 app.post('/api/signup', (req, res) => {
   const { name, email, password } = req.body;
   if (!name || !email || !password) return res.status(400).json({ message: "All fields required" });

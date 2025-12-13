@@ -1,0 +1,79 @@
+-- 1. Create the Database
+CREATE DATABASE sloth;
+
+-- 2. Select the Database
+USE sloth;
+
+-- 3. Create the Users Table
+CREATE TABLE simple_users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL
+);
+
+-- 1. Allow password to be empty (NULL) for Google Users
+ALTER TABLE simple_users MODIFY password VARCHAR(255) NULL;
+
+-- 2. Add a column to store the Google User ID
+ALTER TABLE simple_users ADD COLUMN google_id VARCHAR(255) UNIQUE DEFAULT NULL;
+
+-- 3. (Optional) Add a profile picture column if you want to show their Google photo later
+ALTER TABLE simple_users ADD COLUMN picture VARCHAR(500) DEFAULT NULL;
+select * from simple_users;
+
+
+-- USE sloth;
+
+CREATE TABLE loan_applications (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    
+    -- 1. Personal
+    full_name VARCHAR(255),
+    dob DATE,
+    gender VARCHAR(20),
+    phone_number VARCHAR(15),
+    email VARCHAR(100),
+    parent_name VARCHAR(255),
+    current_address TEXT,
+    permanent_address TEXT,
+    
+    -- 2. KYC
+    aadhaar_number VARCHAR(20),
+    pan_number VARCHAR(20),
+    
+    -- 3. Employment
+    employment_type VARCHAR(50),
+    employer_name VARCHAR(255),
+    job_role VARCHAR(100),
+    monthly_income DECIMAL(15,2),
+    work_experience_months INT,
+    
+    -- 4. Financial
+    credit_score INT,
+    existing_emis INT,
+    monthly_emi_obligation DECIMAL(15,2),
+    net_savings DECIMAL(15,2),
+    
+    -- 5. Loan Details
+    loan_amount DECIMAL(15,2),
+    loan_purpose VARCHAR(100),
+    tenure_months INT,
+    repayment_mode VARCHAR(50),
+    
+    -- 6. Bank Details
+    account_holder VARCHAR(255),
+    account_number VARCHAR(50),
+    ifsc_code VARCHAR(20),
+    bank_name VARCHAR(100),
+    linked_mobile VARCHAR(15),
+    
+    -- 7. References
+    ref1_name VARCHAR(255), ref1_phone VARCHAR(15), ref1_relation VARCHAR(50),
+    ref2_name VARCHAR(255), ref2_phone VARCHAR(15), ref2_relation VARCHAR(50),
+
+    application_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
+select * from loan_applications;

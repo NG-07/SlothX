@@ -234,7 +234,6 @@ body { margin: 0; font-family: var(--font-main); }
 
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-/* ... (Keep your existing CSS above) ... */
 
 /* =========================================
    7. CREATIVE APPLY PAGE (Fit-to-Screen Layout)
@@ -454,7 +453,6 @@ body { margin: 0; font-family: var(--font-main); }
     .apply-content-area { padding: 30px 20px; overflow: visible; }
 }
 
-/* Add this to the end of your App.css */
 
 /* Google & Divider Styling */
 .google-btn-wrapper {
@@ -486,9 +484,6 @@ body { margin: 0; font-family: var(--font-main); }
 /* Hide the old social login logic */
 .social-login { display: none; }
 
-/* --- PREMIUM UI UPGRADES --- */
-
-/* Better File Upload Box */
 .upload-zone-premium {
     margin-top: 30px;
     border: 2px dashed var(--primary-gold);
