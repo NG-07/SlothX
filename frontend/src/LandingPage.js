@@ -1,60 +1,89 @@
-import React, { useState } from 'react';
+import React from 'react';
+import './App.css'; 
 
 const LandingPage = ({ onApplyClick }) => {
-  const [activeFAQ, setActiveFAQ] = useState(null);
-  
-  const toggleFAQ = (index) => setActiveFAQ(activeFAQ === index ? null : index);
-
   return (
-    <>
-      {/* Hero */}
-      <section id="home" className="hero-section">
+    <div className="landing-container">
+      
+      {/* 1. HERO SECTION - Simple & Bold */}
+      <header className="hero-section simple-hero">
         <div className="hero-content">
-          <p className="hero-sub">PERSONAL, BUSINESS, AND HOME LOANS MADE SIMPLE</p>
-          <h1>SMARTER LOANS, FASTER ACCESS<br />100+ LENDERS AT YOUR FINGERTIPS.</h1>
-          <p className="hero-desc">Compare Exclusive Offers from Leading Lenders</p>
-          <button className="cta-btn" onClick={onApplyClick}>Apply Now</button>
+          <div className="sloth-badge">Presented by Team SlothX</div>
+          <h1 className="hero-title">Easy Lenders</h1>
+          <h2 className="hero-subtitle">The Future of AI & Blockchain Finance</h2>
+          
+          <p className="hero-simple-text">
+            Smart Loans. Zero Paperwork. 100% Trust. <br/>
+            We use AI to fetch your data and Blockchain to secure it.
+          </p>
+
+          <button className="primary-btn glow-btn" onClick={onApplyClick}>Start Application 🚀</button>
         </div>
-        <div className="hero-image">
-          <img src="https://placehold.co/600x400/png?text=Loan+Image" alt="Loans" />
+      </header>
+
+      {/* 2. FEATURES - Clean Cards */}
+      <section className="info-section" id="about">
+        <div className="features-grid simple-grid">
+          <div className="feature-card glass-card">
+            <div className="icon">🤖</div>
+            <h4>AI Agents</h4>
+            <p>No human managers. AI processes your loan instantly.</p>
+          </div>
+          <div className="feature-card glass-card">
+            <div className="icon">🔗</div>
+            <h4>Blockchain Trust</h4>
+            <p>Your data is locked in a secure, tamper-proof vault.</p>
+          </div>
+          <div className="feature-card glass-card">
+            <div className="icon">⚡</div>
+            <h4>Instant Payouts</h4>
+            <p>Smart contracts release funds the moment you are approved.</p>
+          </div>
         </div>
       </section>
 
-      {/* Steps */}
-      <section className="section-block steps-section">
-        <h2 className="section-title center">LOAN APPROVAL IN 5 EASY STEPS</h2>
-        <div className="steps-container">
-          {[ 
-            "Review and select your ideal loan offer", 
-            "Upload your documents for quick verification", 
-            "Fill out and submit the registration form", 
-            "Our Relationship Manager will reach out", 
-            "Receive instant loan approval" 
-          ].map((step, i) => (
-            <div key={i} className="step-item">
-              <div className="step-number">{i + 1}</div>
-              <div className="step-text">{step}</div>
+      {/* 3. CREATIVE TEAM SECTION */}
+      <section className="team-section" id="team">
+        <h2 className="section-title">Meet The Minds Behind SlothX</h2>
+        
+        <div className="team-container">
+            {/* Left: Interactive Team List */}
+            <div className="team-members">
+                <div className="member-card">
+                    <span className="avatar">🎨</span>
+                    <div className="member-info">
+                        <h3>Nuvvula Geethika</h3>
+                    </div>
+                </div>
+
+                <div className="member-card">
+                    <span className="avatar">🚀</span>
+                    <div className="member-info">
+                        <h3>Lakshmi Sowmya</h3>
+                    </div>
+                </div>
+
+                <div className="member-card">
+                    <span className="avatar">👩‍💻</span>
+                    <div className="member-info">
+                        <h3>Mohammed Rafi</h3>
+                    </div>
+                </div>
             </div>
-          ))}
+
+            {/* Right: Team Logo Display */}
+            <div className="team-logo-display">
+                <div className="logo-circle">
+                    {/* PLACEHOLDER FOR YOUR LOGO */}
+                    {/* Make sure to put an image named 'team-logo.png' in your public folder */}
+                    <img src="/team-logo.png" alt="SlothX Logo" onError={(e) => e.target.style.display='none'} />
+                    <span className="logo-text">SlothX</span>
+                </div>
+            </div>
         </div>
       </section>
 
-      {/* FAQ */}
-      <section className="section-block faq-section">
-        <div className="faq-header">
-            <img src="https://placehold.co/400x300/png?text=FAQ+Blocks" alt="FAQ" className="faq-img"/>
-        </div>
-        <div className="faq-list">
-          <h2 className="section-title">FAQS</h2>
-          {[ "Why take a business loan?", "Process for personal loan?", "Best deals on Loans", "Do I Qualify?" ].map((q, i) => (
-            <div key={i} className="faq-item" onClick={() => toggleFAQ(i)}>
-              <div className="faq-question">{q} <span>{activeFAQ === i ? '-' : '+'}</span></div>
-              {activeFAQ === i && <div className="faq-answer">Details here...</div>}
-            </div>
-          ))}
-        </div>
-      </section>
-    </>
+    </div>
   );
 };
 

@@ -4,6 +4,7 @@ import axios from 'axios';
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google'; 
 import LandingPage from './LandingPage';
 import ApplyPage from './ApplyPage';
+import logo_image from './assets/logo.jpg';
 
 const GOOGLE_CLIENT_ID = "263303907123-gmok720j1p9tqia0l5ff1d5nep5d3qq9.apps.googleusercontent.com";
 
@@ -73,10 +74,17 @@ const App = () => {
         
         {/* NAVBAR */}
         <nav className="navbar">
-          <div className="logo" onClick={() => navigateTo('landing')}><span className="logo-icon">C</span> YES LOANS</div>
-          <div className="nav-links">
-             <a href="#home">Home</a><a href="#about">About</a><a href="#service">Service</a><a href="#contact">Contact</a>
+          {/* UPDATED LOGO */}
+          <div className="logo" onClick={() => navigateTo('landing')}>
+              {/* Updates the text to an image */}
+              <img src={logo_image} alt="SlothX Logo" className="navbar-logo-img" /> 
+              <span>SlothX</span>
           </div>
+          
+          <div className="nav-links">
+            <a href="#home">Home</a><a href="#about">About</a><a href="#team">Team</a>
+          </div>
+          
           <div className="nav-actions">
             <button className="theme-btn" onClick={toggleTheme}>{isDarkMode ? '☀️' : '🌙'}</button>
             {isLoggedIn ? (
@@ -90,7 +98,6 @@ const App = () => {
         {/* CONTENT */}
         <div className="main-content">
           {currentView === 'landing' && <LandingPage onApplyClick={() => navigateTo('apply')} />}
-          // Find this part inside the return() of App.js
           {currentView === 'apply' && (
             <ApplyPage 
               onApplySuccess={() => {
@@ -167,7 +174,8 @@ const App = () => {
           </div>
         )}
 
-        <footer className="footer"><p>&copy; 2025 YesLoans.</p></footer>
+        {/* FOOTER */}
+        <footer className="footer"><p>&copy; 2025 SlothX Innovations. All rights reserved.</p></footer>
       </div>
     </GoogleOAuthProvider>
   );
