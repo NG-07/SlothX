@@ -89,7 +89,6 @@ const App = () => {
             {isLoggedIn ? (
               <div className="user-info"><span>Hi, <b>{userUser}</b></span><button className="logout-btn" onClick={handleLogout}>Logout</button></div>
             ) : (
-              // FIXED: Button text restored
               <button className="nav-btn" onClick={() => setShowAuthModal(true)}>Login / Sign Up</button>
             )}
           </div>
