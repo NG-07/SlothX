@@ -1,6 +1,7 @@
 version: '3.8'
 
 services:
+  # Backend API
   credit-risk-api:
     build:
       context: .
@@ -11,9 +12,7 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
     volumes:
-      # Mount model file if you want to update it without rebuilding
       - ./random_forest_model.pkl:/app/random_forest_model.pkl:ro
-      # Mount data directory as read-only
       - ./credit_risk_data:/app/credit_risk_data:ro
     restart: unless-stopped
     healthcheck:
@@ -22,6 +21,20 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+    networks:
+      - credit-risk-network
+
+  # Frontend React App
+  credit-risk-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: credit-risk-prediction-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - credit-risk-api
+    restart: unless-stopped
     networks:
       - credit-risk-network
 
